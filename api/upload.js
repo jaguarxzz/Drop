@@ -1,4 +1,4 @@
-import { put } from '@vercel/blob';
+ import { put } from '@vercel/blob';
 
 const TYPES = {
   html: 'text/html; charset=utf-8', htm: 'text/html; charset=utf-8',
@@ -9,26 +9,30 @@ const TYPES = {
 };
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).end();
-  const name = String(req.query.name || '').toLowerCase();
-  let ext = name.split('.').pop();
-  if (!TYPES[ext]) return res.status(400).json({ error: 'Format belum didukung' });
+  try {
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method salah' });
+    const name = String(req.query.name || '').toLowerCase();
+    let ext = name.split('.').pop();
+    if (!TYPES[ext]) return res.status(400).json({ error: 'Format belum didukung' });
 
-  const chunks = [];
-  let size = 0;
-  for await (const c of req) {
-    size += c.length;
-    if (size > 4 * 1024 * 1024) return res.status(413).json({ error: 'Maksimal 4 MB' });
-    chunks.push(c);
+    const chunks = [];
+    let size = 0;
+    for await (const c of req) {
+      size += c.length;
+      if (size > 4 * 1024 * 1024) return res.status(413).json({ error: 'Maksimal 4 MB' });
+      chunks.push(c);
+    }
+
+    if (ext === 'htm') ext = 'html';
+    const id = Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-3);
+    const key = `${id}.${ext}`;
+    await put(`sites/${key}`, Buffer.concat(chunks), {
+      access: 'public',
+      contentType: TYPES[ext],
+      addRandomSuffix: false,
+    });
+    res.status(200).json({ url: `/s/${key}` });
+  } catch (e) {
+    res.status(500).json({ error: String(e.message || e) });
   }
-
-  if (ext === 'htm') ext = 'html';
-  const id = Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-3);
-  const key = `${id}.${ext}`;
-  await put(`sites/${key}`, Buffer.concat(chunks), {
-    access: 'public',
-    contentType: TYPES[ext],
-    addRandomSuffix: false,
-  });
-  res.json({ url: `/s/${key}` });
 }
