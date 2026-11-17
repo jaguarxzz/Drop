@@ -1,7 +1,10 @@
- {
+{
   "name": "dropsite",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
-  "dependencies": { "@vercel/blob": ">=2.0.0" }
- }
+  "dependencies": {
+    "@vercel/blob": ">=2.0.0",
+    "fflate": "^0.8.2"
+  }
+}
