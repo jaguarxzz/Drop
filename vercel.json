@@ -1,3 +1,7 @@
-{
-  "rewrites": [{ "source": "/s/:f", "destination": "/api/view?f=:f" }]
-}
+ {
+  "rewrites": [
+    { "source": "/s/:f", "destination": "/api/view?f=:f" },
+    { "source": "/:slug([a-z0-9-]+)", "destination": "/api/view?slug=:slug" },
+    { "source": "/:slug((?!api)[a-z0-9-]+)/:path*", "destination": "/api/view?slug=:slug&p=:path*" }
+  ]
+ }
